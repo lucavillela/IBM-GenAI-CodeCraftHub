@@ -164,11 +164,18 @@
         cursor: not-allowed;
       }
       .btn-primary {
-        background: var(--primary);
-        color: #fff;
+        background: #8B5CF6;
+        color: white;
       }
       .btn-primary:hover:not(:disabled) {
-        background: var(--primary-dark);
+        background: #7C3AED;
+      }
+      .btn-success {
+        background: #F59E0B;
+        color: #1F2937;
+      }
+      .btn-success:hover:not(:disabled) {
+        background: #D97706;
       }
       .btn-secondary {
         background: #fff;
@@ -187,11 +194,11 @@
         background: #e7ddff;
       }
       .btn-danger {
-        background: var(--danger);
-        color: #fff;
+        background: #EF4444;
+        color: white;
       }
       .btn-danger:hover:not(:disabled) {
-        background: var(--danger-dark);
+        background: #DC2626;
       }
       .btn-remove {
         background: var(--danger-light);
@@ -589,7 +596,7 @@
           <button type="button" class="btn-secondary" id="edit-cancel">
             Cancel
           </button>
-          <button type="submit" class="btn-primary">
+          <button type="submit" class="btn-success">
             <span class="spinner"></span><span class="label">Save Changes</span>
           </button>
         </div>
