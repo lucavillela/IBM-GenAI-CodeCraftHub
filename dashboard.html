@@ -648,10 +648,15 @@
       /* ==========================================================================
    Settings
    ========================================================================== */
-      // Address of the CodeCraftHub server. The server allows CORS, so this page
-      // can be opened from anywhere (from disk, or hosted elsewhere). Use "" instead
-      // if you only ever open the page through the server itself (http://127.0.0.1:5000/).
-      const BACKEND_URL = "http://127.0.0.1:5000";
+      // Address of the CodeCraftHub server. When the server serves this page
+      // (http://127.0.0.1:5000/) it fills in the value below from the BACKEND_URL
+      // setting in .env; an empty value means "the same server as this page".
+      // When the file is opened straight from disk nothing fills it in, so we fall
+      // back to the default local address (edit it here if you changed PORT).
+      const configuredUrl = "__BACKEND_URL__";
+      const BACKEND_URL = configuredUrl.startsWith("__")
+        ? "http://127.0.0.1:5000"
+        : configuredUrl;
       const API_URL = BACKEND_URL + "/api/courses";
       const STATUSES = ["Not Started", "In Progress", "Completed"];
 

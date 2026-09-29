@@ -4,7 +4,7 @@ Courses are stored in a plain JSON file (courses.json). No database, no auth.
 
 Run with:  python app.py   ->  http://127.0.0.1:5000/api/courses
 
-Settings (HOST, PORT, DEBUG, DATA_FILE, CORS_ORIGINS) can be
+Settings (HOST, PORT, DEBUG, DATA_FILE, CORS_ORIGINS, BACKEND_URL) can be
 changed in a .env file. See .env.example.
 """
 import json
@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
 # The folder this script lives in. Files are found relative to it, no matter
@@ -32,6 +32,10 @@ DATA_FILE = os.path.join(BASE_DIR, os.getenv("DATA_FILE", "courses.json"))
 # Websites allowed to call the API from a browser: "*" (anyone) or a
 # comma-separated list such as "http://localhost:3000,https://mysite.com".
 CORS_ORIGINS = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+
+# Address the dashboard page uses to reach the API. Empty means "the same
+# server that served the page", which follows HOST/PORT automatically.
+BACKEND_URL = os.getenv("BACKEND_URL", "").strip().rstrip("/")
 
 # The only statuses a course is allowed to have.
 VALID_STATUSES = ["Not Started", "In Progress", "Completed"]
@@ -125,8 +129,16 @@ def validate_fields(data, partial=False):
 # ---------------------------------------------------------------------------
 @app.route("/", methods=["GET"])
 def dashboard():
-    """Serve the web dashboard (dashboard.html) so it can call the API from the same address."""
-    return send_from_directory(BASE_DIR, "dashboard.html")
+    """Serve the web dashboard (dashboard.html), telling it where the API lives.
+
+    The page is plain HTML and can't read .env itself, so we put the
+    BACKEND_URL setting into it here, replacing a placeholder in the file.
+    """
+    with open(os.path.join(BASE_DIR, "dashboard.html"), "r") as f:
+        html = f.read()
+    # json.dumps makes a safe JavaScript string; "<" is escaped so the value can't close the <script> tag.
+    url_literal = json.dumps(BACKEND_URL).replace("<", "\\u003c")
+    return Response(html.replace('"__BACKEND_URL__"', url_literal), mimetype="text/html")
 
 
 @app.route("/api/courses", methods=["POST"])
