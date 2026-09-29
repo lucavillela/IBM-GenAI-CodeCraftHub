@@ -32,7 +32,7 @@ rm -f courses.json
 **Troubleshooting**
 
 - `Connection refused`: the server isn't running. Start it (step 1).
-- Every request returns `403 Forbidden` or a page that isn't JSON, or the server says the address is in use: on macOS, AirPlay Receiver uses port 5000. Turn it off in *System Settings → General → AirDrop & Handoff → AirPlay Receiver*, or run the server on another port (change `port=5000` at the bottom of `app.py`) and use that port in the commands.
+- Every request returns `403 Forbidden` or a page that isn't JSON, or the server says the address is in use: on macOS, AirPlay Receiver uses port 5000. Turn it off in *System Settings → General → AirDrop & Handoff → AirPlay Receiver*, or run the server on another port (set `PORT=5001` in your `.env` file, see the README) and use that port in the commands.
 
 ---
 

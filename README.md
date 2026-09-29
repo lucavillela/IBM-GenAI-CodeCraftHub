@@ -77,7 +77,8 @@ Every response also has a **status code**, a number that says how it went:
 - Filter the course list by status (`?status=In Progress`)
 - Statistics endpoint: total courses and how many are in each status
 - A web dashboard (`dashboard.html`) to add, edit and remove courses in the browser
-- CORS enabled, so web pages hosted elsewhere can call the API
+- CORS enabled, so web pages hosted elsewhere can call the API (you choose which ones)
+- Settings (port, debug mode, data file, CORS origins, dashboard API address) configurable through a `.env` file
 - Automatic `id` and `created_at` for every course
 - Input validation with clear error messages (missing fields, bad status, bad date)
 - Every error, including unknown URLs and wrong methods, comes back as JSON: `{"error": "..."}`
@@ -135,7 +136,7 @@ Windows (Command Prompt):
 
 Your prompt now starts with `(.venv)`. You need to activate it again each time you open a new terminal.
 
-**Step 4. Install the dependencies** (only Flask):
+**Step 4. Install the dependencies** (Flask, plus python-dotenv for reading the `.env` settings file):
 
 ```bash
 pip install -r requirements.txt
@@ -159,7 +160,7 @@ The API is now running at **http://127.0.0.1:5000**. Leave this terminal open, s
 
 On first start, `courses.json` is created next to `app.py` containing an empty list (`[]`).
 
-**Open the dashboard.** Visit **http://127.0.0.1:5000/** in your browser. It's a single HTML page (plain HTML, CSS and JavaScript, no frameworks) that uses the API for everything: a form to add courses, a list with **Edit** and **Remove** buttons and a **Status** dropdown to filter it, and summary numbers at the top. You can also open `dashboard.html` straight from disk or host it elsewhere: the API allows cross-origin requests (CORS) from any address, and `BACKEND_URL` at the top of the script's code says where the API lives.
+**Open the dashboard.** Visit **http://127.0.0.1:5000/** in your browser. It's a single HTML page (plain HTML, CSS and JavaScript, no frameworks) that uses the API for everything: a form to add courses, a list with **Edit** and **Remove** buttons and a **Status** dropdown to filter it, and summary numbers at the top. The dashboard finds the API at the same address it was loaded from, so it keeps working if you change `PORT`. You can also open `dashboard.html` straight from disk or host it elsewhere; see the `BACKEND_URL` and `CORS_ORIGINS` settings under [Configuration](#configuration-optional).
 
 **Check that the API works.** Open a **second** terminal and run:
 
@@ -169,7 +170,30 @@ curl http://127.0.0.1:5000/api/courses
 
 You should get `[]`, an empty list of courses. You can also open that address in your browser.
 
-The server runs in debug mode, so it restarts by itself when you edit `app.py`.
+The server runs in debug mode by default, so it restarts by itself when you edit `app.py`.
+
+### Configuration (optional)
+
+Settings live in a `.env` file, which is private to your machine and not committed to git. The repository includes a template, `.env.example`. To change a setting, copy it and edit the copy:
+
+```bash
+cp .env.example .env
+```
+
+Then restart the server. Every setting is optional; without a `.env` file the defaults below are used.
+
+| Setting | Default | What it does |
+|---------|---------|--------------|
+| `HOST` | `127.0.0.1` | Address the server listens on. `127.0.0.1` means only your computer; `0.0.0.0` lets other devices on your network connect. |
+| `PORT` | `5000` | Port the server listens on. Change it if 5000 is busy. |
+| `DEBUG` | `true` | `true` reloads the server when you edit the code and shows detailed errors. Use `false` for anything except local development. |
+| `DATA_FILE` | `courses.json` | File where courses are saved. A relative path is placed next to `app.py`; an absolute path is used as is. |
+| `CORS_ORIGINS` | `*` | Websites allowed to call the API from a browser: `*` for any, or a comma-separated list like `http://localhost:3000,https://mysite.com`. |
+| `BACKEND_URL` | *(empty)* | The **dashboard's** API address. Empty means "the server that served the page", which follows `HOST` and `PORT` automatically. Set it only if the API lives at a different address, for example `https://api.example.com`. |
+
+A variable set in your terminal beats the `.env` file, for example `PORT=5001 python app.py`. If you change `PORT`, use the new port in every URL in this guide.
+
+**How the dashboard gets its settings.** `dashboard.html` is a plain file and can't read `.env`. When the server serves the page at `/`, it fills in `BACKEND_URL` for you. If you open `dashboard.html` directly from disk, nothing fills it in and the page falls back to `http://127.0.0.1:5000`; edit the `configuredUrl` line in the script if your server uses another address. (The server must then allow your page's origin in `CORS_ORIGINS`.)
 
 ## 5. API documentation
 
@@ -357,7 +381,7 @@ Flask isn't installed in the Python you are running. Make sure the virtual envir
 The server isn't running. Start it with `python app.py` in another terminal and leave it open.
 
 **`Address already in use`, or every request returns `403 Forbidden`**
-Something else is using port 5000. On macOS this is usually **AirPlay Receiver**: turn it off in *System Settings → General → AirDrop & Handoff → AirPlay Receiver*. Or change the port: at the bottom of `app.py`, edit `app.run(debug=True, port=5000)`, for example to `port=5001`, and use that port in your URLs.
+Something else is using port 5000. On macOS this is usually **AirPlay Receiver**: turn it off in *System Settings → General → AirDrop & Handoff → AirPlay Receiver*. Or change the port: set `PORT=5001` in your `.env` file (see [Configuration](#configuration-optional)), restart the server, and use that port in your URLs.
 
 **`400` with `Request body must be a JSON object`**
 Your JSON is broken or the header is missing. Check that every `"` and `{ }` is matched and that you included `-H "Content-Type: application/json"`. Keep the JSON in single quotes: `-d '{...}'`.
@@ -383,7 +407,8 @@ Debug mode reloads automatically on save. If it doesn't, stop the server (`Ctrl+
 IBM-GenAI-CodeCraftHub/
 ├── app.py            # The whole API: storage helpers, validation, endpoints
 ├── courses.json      # Your data (created automatically; safe to delete to start over)
-├── requirements.txt  # Python libraries to install (just Flask)
+├── requirements.txt  # Python libraries to install (Flask, python-dotenv)
+├── .env.example      # Template for settings; copy it to .env to change them
 ├── README.md         # This file
 ├── TESTING.md        # Copy-and-paste curl tests
 ├── dashboard.html    # Web dashboard (HTML + CSS + JavaScript in one file)
@@ -396,10 +421,10 @@ The file is organized top to bottom in five sections:
 
 | Section | What it does |
 |---------|--------------|
-| **Setup** | Creates the Flask app, and defines where `courses.json` lives and which statuses are allowed. |
+| **Setup** | Reads the `.env` settings, creates the Flask app, and defines where the data file lives and which statuses are allowed. |
 | **Storage helpers** | `load_courses()` reads the file into a list. `save_courses()` writes the list back. `next_id()` picks the next id. `find_course()` looks one up. |
 | **Validation** | `validate_fields()` checks the data a client sends and returns a helpful message if something is wrong. |
-| **Endpoints** | `/` serves the dashboard; every other function is one API action. `@app.route(...)` above each function connects it to a URL and a method. |
+| **Endpoints** | `/` serves the dashboard (filling in its API address); every other function is one API action. `@app.route(...)` above each function connects it to a URL and a method. |
 | **Error handlers** | Turn every error (missing pages, wrong methods, file problems) into a JSON response. |
 
 ### How a request flows through the code
