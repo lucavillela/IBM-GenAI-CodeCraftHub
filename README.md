@@ -75,6 +75,7 @@ Every response also has a **status code**, a number that says how it went:
 
 - Full CRUD for courses: create, list, get one, update, delete
 - Filter the course list by status (`?status=In Progress`)
+- Statistics endpoint: total courses and how many are in each status
 - Automatic `id` and `created_at` for every course
 - Input validation with clear error messages (missing fields, bad status, bad date)
 - Every error, including unknown URLs and wrong methods, comes back as JSON: `{"error": "..."}`
@@ -174,6 +175,7 @@ Base URL: `http://127.0.0.1:5000`
 |--------|-----|--------------|---------|--------|
 | POST | `/api/courses` | Add a new course | 201 | 400 |
 | GET | `/api/courses` | Get all courses (optional `?status=...`) | 200 | |
+| GET | `/api/courses/stats` | Get statistics: total and count per status | 200 | |
 | GET | `/api/courses/<id>` | Get one course | 200 | 404 |
 | PUT | `/api/courses/<id>` | Update a course | 200 | 400, 404 |
 | DELETE | `/api/courses/<id>` | Delete a course | 200 | 404 |
@@ -228,6 +230,27 @@ To see only courses with a certain status (`%20` stands for a space):
 
 ```bash
 curl "http://127.0.0.1:5000/api/courses?status=In%20Progress"
+```
+
+### Get statistics: `GET /api/courses/stats`
+
+Returns the total number of courses and how many have each status. All three statuses are always listed, with `0` when none match.
+
+```bash
+curl http://127.0.0.1:5000/api/courses/stats
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "by_status": {
+    "Completed": 1,
+    "In Progress": 2,
+    "Not Started": 1
+  },
+  "total": 4
+}
 ```
 
 ### Get one course: `GET /api/courses/<id>`
@@ -305,9 +328,9 @@ Every error has the same shape: `{"error": "a message explaining what went wrong
 
 ## 6. Testing
 
-[**TESTING.md**](TESTING.md) is a step-by-step guide with 25 copy-and-paste `curl` tests, each with the exact response you should see:
+[**TESTING.md**](TESTING.md) is a step-by-step guide with 26 copy-and-paste `curl` tests, each with the exact response you should see:
 
-- **Part 1:** successful operations (create, list, filter, get, update, delete)
+- **Part 1:** successful operations (create, list, filter, get, update, delete, statistics)
 - **Part 2:** error cases (missing fields, invalid data, course not found, wrong method, damaged data file)
 
 The short version:

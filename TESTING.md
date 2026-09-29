@@ -225,6 +225,24 @@ Expected (**200 OK**): only course 1 is left.
 HTTP status: 200
 ```
 
+## 1.10 Get statistics (GET)
+
+Only course 1 is left, and its status is `Completed`.
+
+```bash
+curl -s http://127.0.0.1:5000/api/courses/stats -w "\nHTTP status: %{http_code}\n"
+```
+
+Expected (**200 OK**): the total, and a count for each of the three statuses.
+
+```json
+{
+  "by_status": {"Completed": 1, "In Progress": 0, "Not Started": 0},
+  "total": 1
+}
+HTTP status: 200
+```
+
 ---
 
 # Part 2: Error scenarios
@@ -496,7 +514,7 @@ rm -f courses.json
 | Test | Request | Status |
 |------|---------|--------|
 | 1.1-1.2 | POST valid course | 201 |
-| 1.3-1.5 | GET all / filtered / one / statistics | 200 |
+| 1.3-1.5, 1.10 | GET all / filtered / one / statistics | 200 |
 | 1.6-1.7 | PUT valid update | 200 |
 | 1.8 | DELETE existing course | 200 |
 | 2.1-2.9 | POST/PUT with bad data | 400 |

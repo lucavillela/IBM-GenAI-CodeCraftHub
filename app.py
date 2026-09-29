@@ -139,6 +139,20 @@ def list_courses():
     return jsonify(courses), 200
 
 
+@app.route("/api/courses/stats", methods=["GET"])
+def course_stats():
+    """Get statistics: the total number of courses and how many have each status."""
+    courses = load_courses()
+
+    # Start every status at 0 so the response always lists all three,
+    # even when no course has that status yet.
+    by_status = {status: 0 for status in VALID_STATUSES}
+    for course in courses:
+        by_status[course["status"]] += 1
+
+    return jsonify({"total": len(courses), "by_status": by_status}), 200
+
+
 @app.route("/api/courses/<int:course_id>", methods=["GET"])
 def get_course(course_id):
     """Get one course by its id."""
