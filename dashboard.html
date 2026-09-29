@@ -273,6 +273,21 @@
       .list-head h2 {
         margin: 0;
       }
+      .list-tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .list-tools label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .list-tools select {
+        width: auto;
+        margin-top: 0;
+        padding: 7px 10px;
+      }
 
       table {
         width: 100%;
@@ -402,6 +417,19 @@
 
       /* ---------- Mobile: turn table rows into cards ---------- */
       @media (max-width: 700px) {
+        .list-head {
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .list-tools {
+          width: 100%;
+        }
+        .list-tools label {
+          flex: 1;
+        }
+        .list-tools select {
+          flex: 1;
+        }
         .fields {
           grid-template-columns: 1fr;
         }
@@ -506,9 +534,17 @@
       <section class="panel" aria-labelledby="list-title">
         <div class="list-head">
           <h2 id="list-title">Your Courses</h2>
-          <button type="button" id="refresh-btn" class="btn-secondary">
-            Refresh
-          </button>
+          <div class="list-tools">
+            <label>
+              Status
+              <select id="status-filter" aria-label="Filter courses by status">
+                <option value="">All</option>
+              </select>
+            </label>
+            <button type="button" id="refresh-btn" class="btn-secondary">
+              Refresh
+            </button>
+          </div>
         </div>
 
         <div id="list-loading" class="state" role="status">
@@ -656,7 +692,8 @@
       }
 
       const api = {
-        list: () => request(""),
+        list: (status) =>
+          request(status ? "?status=" + encodeURIComponent(status) : ""),
         stats: () => request("/stats"),
         create: (course) => request("", { method: "POST", body: course }),
         update: (id, part) => request("/" + id, { method: "PUT", body: part }),
@@ -886,19 +923,32 @@
         }
       }
 
+      // Counts every load so a slow, older response can't overwrite a newer one
+      // (e.g. when you switch the filter quickly).
+      let loadCounter = 0;
+
       async function loadCourses() {
+        const thisLoad = ++loadCounter;
+        const status = $("#status-filter").value; // "" means all courses
         showListState("loading");
         $("#refresh-btn").disabled = true;
         try {
-          courses = await api.list();
+          // The backend does the filtering: GET /api/courses?status=...
+          const result = await api.list(status);
+          if (thisLoad !== loadCounter) return;
+          courses = result;
+          $("#list-empty").textContent = status
+            ? "No courses with status “" + status + "”."
+            : "No courses yet. Add your first one above!";
           renderCourses();
           loadStats();
         } catch (err) {
+          if (thisLoad !== loadCounter) return;
           $("#list-error-text").textContent = err.message;
           showListState("error");
           showMessage("error", err.message);
         } finally {
-          $("#refresh-btn").disabled = false;
+          if (thisLoad === loadCounter) $("#refresh-btn").disabled = false;
         }
       }
 
@@ -923,7 +973,11 @@
           const created = await api.create(values);
           addForm.reset();
           showFieldErrors(addForm, {});
-          showMessage("success", "Added “" + created.name + "”.");
+          const hidden = $("#status-filter").value && $("#status-filter").value !== created.status;
+          showMessage(
+            "success",
+            "Added “" + created.name + "”." + (hidden ? " It’s hidden by the current filter." : "")
+          );
           await loadCourses();
         } catch (err) {
           showMessage("error", err.message);
@@ -1026,6 +1080,10 @@
    ========================================================================== */
       buildFields(addForm);
       buildFields(editForm);
+      STATUSES.forEach((status) =>
+        $("#status-filter").append(el("option", { value: status, textContent: status }))
+      );
+      $("#status-filter").addEventListener("change", loadCourses);
       $("#refresh-btn").addEventListener("click", loadCourses);
       $("#retry-btn").addEventListener("click", loadCourses);
       loadCourses();

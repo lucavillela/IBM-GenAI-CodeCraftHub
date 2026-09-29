@@ -159,7 +159,7 @@ The API is now running at **http://127.0.0.1:5000**. Leave this terminal open, s
 
 On first start, `courses.json` is created next to `app.py` containing an empty list (`[]`).
 
-**Open the dashboard.** Visit **http://127.0.0.1:5000/** in your browser. It's a single HTML page (plain HTML, CSS and JavaScript, no frameworks) that uses the API for everything: a form to add courses, a list with **Edit** and **Remove** buttons and summary numbers at the top. You can also open `dashboard.html` straight from disk or host it elsewhere: the API allows cross-origin requests (CORS) from any address, and `BACKEND_URL` at the top of the script's code says where the API lives.
+**Open the dashboard.** Visit **http://127.0.0.1:5000/** in your browser. It's a single HTML page (plain HTML, CSS and JavaScript, no frameworks) that uses the API for everything: a form to add courses, a list with **Edit** and **Remove** buttons and a **Status** dropdown to filter it, and summary numbers at the top. You can also open `dashboard.html` straight from disk or host it elsewhere: the API allows cross-origin requests (CORS) from any address, and `BACKEND_URL` at the top of the script's code says where the API lives.
 
 **Check that the API works.** Open a **second** terminal and run:
 
