@@ -76,6 +76,7 @@ Every response also has a **status code**, a number that says how it went:
 - Full CRUD for courses: create, list, get one, update, delete
 - Filter the course list by status (`?status=In Progress`)
 - Statistics endpoint: total courses and how many are in each status
+- CORS enabled, so web pages hosted elsewhere can call the API
 - Automatic `id` and `created_at` for every course
 - Input validation with clear error messages (missing fields, bad status, bad date)
 - Every error, including unknown URLs and wrong methods, comes back as JSON: `{"error": "..."}`

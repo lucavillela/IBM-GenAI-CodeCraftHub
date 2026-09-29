@@ -196,6 +196,24 @@ def delete_course(course_id):
 
 
 # ---------------------------------------------------------------------------
+# CORS: let web pages from other addresses (origins) call this API
+# ---------------------------------------------------------------------------
+@app.after_request
+def add_cors_headers(response):
+    """Add the headers that tell the browser cross-origin requests are allowed.
+
+    "*" means any website may call the API. That is fine for a local learning
+    project with no login; for a real app, list only the origins you trust.
+    Browsers also send a "preflight" OPTIONS request before PUT/DELETE/JSON
+    requests; Flask answers it automatically and these headers approve it.
+    """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+# ---------------------------------------------------------------------------
 # Error handlers: make every error come back as JSON like {"error": "..."}
 # ---------------------------------------------------------------------------
 @app.errorhandler(StorageError)
