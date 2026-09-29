@@ -200,13 +200,8 @@
       .btn-danger:hover:not(:disabled) {
         background: #DC2626;
       }
-      .btn-remove {
-        background: var(--danger-light);
-        color: var(--danger-dark);
+      .actions .btn-danger {
         padding: 6px 12px;
-      }
-      .btn-remove:hover:not(:disabled) {
-        background: #fee2e2;
       }
 
       /* ---------- Spinner ---------- */
@@ -863,10 +858,10 @@
           editBtn.addEventListener("click", () => openEdit(course));
           const removeBtn = el("button", {
             type: "button",
-            className: "btn-remove",
+            className: "btn-danger",
             textContent: "Remove",
           });
-          removeBtn.addEventListener("click", () => openDelete(course));
+          removeBtn.setAttribute("onclick", "handleDelete(" + course.id + ")");
 
           const row = el(
             "tr",
@@ -1054,7 +1049,10 @@
       const deleteDialog = $("#delete-dialog");
       let deleting = null;
 
-      function openDelete(course) {
+      // Called by the Remove button on each row: asks "Remove course?" first.
+      function handleDelete(id) {
+        const course = courses.find((c) => c.id === id);
+        if (!course) return;
         deleting = course;
         $("#delete-name").textContent = course.name;
         deleteDialog.showModal();
