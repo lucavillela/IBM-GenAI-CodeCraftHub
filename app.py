@@ -3,18 +3,35 @@
 Courses are stored in a plain JSON file (courses.json). No database, no auth.
 
 Run with:  python app.py   ->  http://127.0.0.1:5000/api/courses
+
+Settings (HOST, PORT, DEBUG, DATA_FILE, CORS_ORIGINS) can be
+changed in a .env file. See .env.example.
 """
 import json
 import os
 from datetime import datetime
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
+# The folder this script lives in. Files are found relative to it, no matter
+# where you run the app from.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Read settings from the .env file (if there is one) into environment variables.
+# Variables already set in your terminal win over the .env file.
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
 app = Flask(__name__)
 
-# Always put the data file next to this script, no matter where you run it from.
-DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "courses.json")
+# Where courses are stored. A relative path (like "courses.json") is placed next
+# to this script; an absolute path (like "/data/courses.json") is used as is.
+DATA_FILE = os.path.join(BASE_DIR, os.getenv("DATA_FILE", "courses.json"))
+
+# Websites allowed to call the API from a browser: "*" (anyone) or a
+# comma-separated list such as "http://localhost:3000,https://mysite.com".
+CORS_ORIGINS = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 
 # The only statuses a course is allowed to have.
 VALID_STATUSES = ["Not Started", "In Progress", "Completed"]
@@ -109,7 +126,7 @@ def validate_fields(data, partial=False):
 @app.route("/", methods=["GET"])
 def dashboard():
     """Serve the web dashboard (dashboard.html) so it can call the API from the same address."""
-    return send_from_directory(os.path.dirname(DATA_FILE), "dashboard.html")
+    return send_from_directory(BASE_DIR, "dashboard.html")
 
 
 @app.route("/api/courses", methods=["POST"])
@@ -208,12 +225,20 @@ def delete_course(course_id):
 def add_cors_headers(response):
     """Add the headers that tell the browser cross-origin requests are allowed.
 
-    "*" means any website may call the API. That is fine for a local learning
-    project with no login; for a real app, list only the origins you trust.
+    Which websites may call the API is set by CORS_ORIGINS in .env. "*" means
+    any website, which is fine for a local learning project with no login; for
+    a real app, list only the origins you trust.
     Browsers also send a "preflight" OPTIONS request before PUT/DELETE/JSON
     requests; Flask answers it automatically and these headers approve it.
     """
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    origin = request.headers.get("Origin")
+    if "*" in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+    elif origin and origin.rstrip("/") in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"  # the answer depends on who is asking
+    else:
+        return response  # origin not allowed: send no CORS headers
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
@@ -237,6 +262,22 @@ def handle_http_error(e):
 # ---------------------------------------------------------------------------
 # Start the server
 # ---------------------------------------------------------------------------
+def read_server_settings():
+    """Read HOST, PORT and DEBUG from the environment (with defaults)."""
+    host = os.getenv("HOST", "127.0.0.1")
+
+    try:
+        port = int(os.getenv("PORT", "5000"))
+    except ValueError:
+        raise SystemExit("PORT must be a number, but it is %r" % os.getenv("PORT"))
+
+    # "true", "1", "yes" or "on" (any capitalization) turn debug mode on.
+    debug = os.getenv("DEBUG", "true").strip().lower() in ("true", "1", "yes", "on")
+
+    return host, port, debug
+
+
 if __name__ == "__main__":
-    init_data_file()  # create courses.json on startup if it's missing
-    app.run(debug=True, port=5000)
+    init_data_file()  # create the data file on startup if it's missing
+    host, port, debug = read_server_settings()
+    app.run(host=host, port=port, debug=debug)
