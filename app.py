@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
@@ -106,6 +106,12 @@ def validate_fields(data, partial=False):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+@app.route("/", methods=["GET"])
+def dashboard():
+    """Serve the web dashboard (dashboard.html) so it can call the API from the same address."""
+    return send_from_directory(os.path.dirname(DATA_FILE), "dashboard.html")
+
+
 @app.route("/api/courses", methods=["POST"])
 def create_course():
     """Add a new course."""
@@ -193,6 +199,24 @@ def delete_course(course_id):
     courses.remove(course)
     save_courses(courses)
     return jsonify({"message": "Course deleted", "course": course}), 200
+
+
+# ---------------------------------------------------------------------------
+# CORS: let web pages from other addresses (origins) call this API
+# ---------------------------------------------------------------------------
+@app.after_request
+def add_cors_headers(response):
+    """Add the headers that tell the browser cross-origin requests are allowed.
+
+    "*" means any website may call the API. That is fine for a local learning
+    project with no login; for a real app, list only the origins you trust.
+    Browsers also send a "preflight" OPTIONS request before PUT/DELETE/JSON
+    requests; Flask answers it automatically and these headers approve it.
+    """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
 
 
 # ---------------------------------------------------------------------------
