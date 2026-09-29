@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CodeCraftHub Dashboard</title>
+    <style>
+      /* ---------- Theme ---------- */
+      :root {
+        --primary: #8b5cf6; /* purple: buttons, focus, accents */
+        --primary-dark: #7c3aed;
+        --primary-light: #f3eeff;
+        --success: #f59e0b; /* amber: success messages, completed */
+        --success-dark: #92400e;
+        --success-light: #fffbeb;
+        --danger: #ef4444; /* red: delete, errors */
+        --danger-dark: #b91c1c;
+        --danger-light: #fef2f2;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --bg: #f9fafb;
+        --card: #ffffff;
+        --radius: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      /* ---------- Layout ---------- */
+      header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-dark),
+          var(--primary)
+        );
+        color: #fff;
+        padding: 28px 16px;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.25rem, 4vw, 1.9rem);
+      }
+      header p {
+        margin: 6px 0 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+      }
+
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px 16px 64px;
+      }
+
+      section.panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      h2 {
+        margin: 0 0 16px;
+        font-size: 1.15rem;
+      }
+
+      /* ---------- Forms ---------- */
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .fields .full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      label .req {
+        color: var(--danger);
+      }
+
+      input,
+      textarea,
+      select {
+        display: block;
+        width: 100%;
+        margin-top: 6px;
+        padding: 10px 12px;
+        font: inherit;
+        font-weight: 400;
+        color: var(--text);
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+      }
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 3px solid rgba(139, 92, 246, 0.3);
+        border-color: var(--primary);
+      }
+      .invalid input,
+      .invalid textarea,
+      .invalid select {
+        border-color: var(--danger);
+      }
+      .field-error {
+        display: none;
+        color: var(--danger-dark);
+        font-size: 0.82rem;
+        font-weight: 500;
+        margin-top: 4px;
+      }
+      .invalid .field-error {
+        display: block;
+      }
+
+      .form-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      /* ---------- Buttons ---------- */
+      button {
+        font: inherit;
+        font-weight: 600;
+        padding: 9px 16px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+      }
+      button:focus-visible {
+        outline: 3px solid rgba(139, 92, 246, 0.45);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+      }
+      .btn-secondary {
+        background: #fff;
+        color: var(--text);
+        border-color: #d1d5db;
+      }
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--bg);
+      }
+      .btn-edit {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        padding: 6px 12px;
+      }
+      .btn-edit:hover:not(:disabled) {
+        background: #e7ddff;
+      }
+      .btn-danger {
+        background: var(--danger);
+        color: #fff;
+      }
+      .btn-danger:hover:not(:disabled) {
+        background: var(--danger-dark);
+      }
+      .btn-remove {
+        background: var(--danger-light);
+        color: var(--danger-dark);
+        padding: 6px 12px;
+      }
+      .btn-remove:hover:not(:disabled) {
+        background: #fee2e2;
+      }
+
+      /* ---------- Spinner ---------- */
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: none;
+      }
+      button.loading .spinner {
+        display: inline-block;
+      }
+      .spinner.big {
+        display: block;
+        width: 36px;
+        height: 36px;
+        border-color: var(--primary-light);
+        border-top-color: var(--primary);
+        margin: 0 auto 10px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .state {
+        text-align: center;
+        padding: 36px 12px;
+        color: var(--muted);
+      }
+      .state[hidden] {
+        display: none;
+      }
+
+      /* ---------- Stats ---------- */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px;
+        text-align: center;
+      }
+      .stat .num {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+      }
+      .stat .lbl {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      /* ---------- Course table ---------- */
+      .list-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .list-head h2 {
+        margin: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        padding: 8px 10px;
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tbody tr:hover {
+        background: #fbfaff;
+      }
+      .c-name {
+        font-weight: 600;
+      }
+      .c-desc {
+        color: var(--muted);
+        font-size: 0.9rem;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .id {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .badge.not-started {
+        background: #f3f4f6;
+        color: #4b5563;
+      }
+      .badge.in-progress {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+      }
+      .badge.completed {
+        background: #fef3c7;
+        color: var(--success-dark);
+      }
+
+      /* ---------- Messages (toasts) ---------- */
+      #toasts {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: 420px;
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 1000;
+        pointer-events: none;
+      }
+      .toast {
+        pointer-events: auto;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 0.92rem;
+        font-weight: 500;
+        border-left: 5px solid;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+      }
+      .toast.success {
+        background: var(--success-light);
+        border-color: var(--success);
+        color: var(--success-dark);
+      }
+      .toast.error {
+        background: var(--danger-light);
+        border-color: var(--danger);
+        color: var(--danger-dark);
+      }
+      .toast button {
+        background: none;
+        border: 0;
+        padding: 0 4px;
+        font-size: 1.2rem;
+        line-height: 1;
+        color: inherit;
+      }
+
+      /* ---------- Dialogs (edit + confirm delete) ---------- */
+      dialog {
+        border: 0;
+        border-radius: 12px;
+        padding: 22px;
+        width: min(560px, calc(100vw - 24px));
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        color: var(--text);
+      }
+      dialog::backdrop {
+        background: rgba(17, 24, 39, 0.5);
+      }
+      dialog h2 {
+        margin-top: 0;
+      }
+      dialog p {
+        margin: 0 0 8px;
+      }
+
+      /* ---------- Mobile: turn table rows into cards ---------- */
+      @media (max-width: 700px) {
+        .fields {
+          grid-template-columns: 1fr;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        thead {
+          display: none;
+        }
+        table,
+        tbody,
+        tr,
+        td {
+          display: block;
+          width: 100%;
+        }
+        tr {
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 8px 12px;
+          margin-bottom: 12px;
+        }
+        td {
+          border: 0;
+          padding: 6px 0;
+          display: flex;
+          gap: 12px;
+          justify-content: space-between;
+        }
+        td::before {
+          content: attr(data-label);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: var(--muted);
+          font-weight: 600;
+          flex: 0 0 90px;
+          padding-top: 3px;
+        }
+        td > * {
+          flex: 1;
+          text-align: right;
+        }
+        td.course > div {
+          text-align: left;
+        }
+        td > .badge {
+          flex: 0 0 auto;
+          margin-left: auto;
+        }
+        .actions {
+          justify-content: flex-end;
+        }
+        .form-actions button {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>CodeCraftHub: Your Learning Management Platform</h1>
+      <p>Track the courses you want to learn</p>
+    </header>
+
+    <main>
+      <!-- Summary numbers (from GET /api/courses/stats) -->
+      <div class="stats" id="stats" aria-label="Course statistics">
+        <div class="stat">
+          <div class="num" id="stat-total">–</div>
+          <div class="lbl">Total</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="stat-not-started">–</div>
+          <div class="lbl">Not Started</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="stat-in-progress">–</div>
+          <div class="lbl">In Progress</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="stat-completed">–</div>
+          <div class="lbl">Completed</div>
+        </div>
+      </div>
+
+      <!-- Add course -->
+      <section class="panel" aria-labelledby="add-title">
+        <h2 id="add-title">Add a Course</h2>
+        <form id="add-form" novalidate>
+          <div class="fields"></div>
+          <div class="form-actions">
+            <button type="reset" class="btn-secondary">Clear</button>
+            <button type="submit" class="btn-primary">
+              <span class="spinner"></span><span class="label">Add Course</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Course list -->
+      <section class="panel" aria-labelledby="list-title">
+        <div class="list-head">
+          <h2 id="list-title">Your Courses</h2>
+          <button type="button" id="refresh-btn" class="btn-secondary">
+            Refresh
+          </button>
+        </div>
+
+        <div id="list-loading" class="state" role="status">
+          <div class="spinner big"></div>
+          Loading courses…
+        </div>
+        <div id="list-error" class="state" hidden>
+          <p id="list-error-text"></p>
+          <button type="button" id="retry-btn" class="btn-primary">
+            Try again
+          </button>
+        </div>
+        <div id="list-empty" class="state" hidden>
+          No courses yet. Add your first one above!
+        </div>
+
+        <table id="course-table" hidden>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Course</th>
+              <th>Target date</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="course-body"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Messages appear here -->
+    <div id="toasts" aria-live="polite"></div>
+
+    <!-- Edit dialog -->
+    <dialog id="edit-dialog" aria-labelledby="edit-title">
+      <h2 id="edit-title">Edit Course</h2>
+      <form id="edit-form" novalidate>
+        <div class="fields"></div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="edit-cancel">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="spinner"></span><span class="label">Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Delete confirmation dialog -->
+    <dialog id="delete-dialog" aria-labelledby="delete-title">
+      <h2 id="delete-title">Remove course?</h2>
+      <p>This will permanently remove <strong id="delete-name"></strong>.</p>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" id="delete-cancel">
+          Cancel
+        </button>
+        <button type="button" class="btn-danger" id="delete-confirm">
+          <span class="spinner"></span><span class="label">Remove</span>
+        </button>
+      </div>
+    </dialog>
+
+    <!-- The four form fields, used by both the Add form and the Edit dialog -->
+    <template id="fields-template">
+      <label class="full"
+        >Name <span class="req">*</span>
+        <input
+          type="text"
+          name="name"
+          maxlength="200"
+          placeholder="e.g. Flask Basics"
+        />
+        <span class="field-error"></span>
+      </label>
+      <label class="full"
+        >Description <span class="req">*</span>
+        <textarea
+          name="description"
+          placeholder="What will you learn?"
+        ></textarea>
+        <span class="field-error"></span>
+      </label>
+      <label
+        >Target completion date <span class="req">*</span>
+        <input type="date" name="target_date" />
+        <span class="field-error"></span>
+      </label>
+      <label
+        >Status <span class="req">*</span>
+        <select name="status"></select>
+        <span class="field-error"></span>
+      </label>
+    </template>
+
+    <script>
+      "use strict";
+
+      /* ==========================================================================
+   Settings
+   ========================================================================== */
+      // Address of the CodeCraftHub server. The server allows CORS, so this page
+      // can be opened from anywhere (from disk, or hosted elsewhere). Use "" instead
+      // if you only ever open the page through the server itself (http://127.0.0.1:5000/).
+      const BACKEND_URL = "http://127.0.0.1:5000";
+      const API_URL = BACKEND_URL + "/api/courses";
+      const STATUSES = ["Not Started", "In Progress", "Completed"];
+
+      /* ==========================================================================
+   API layer: every call to the backend goes through request()
+   ========================================================================== */
+      async function request(path, options = {}) {
+        const init = { method: options.method || "GET", headers: {} };
+        if (options.body !== undefined) {
+          init.headers["Content-Type"] = "application/json";
+          init.body = JSON.stringify(options.body);
+        }
+
+        let response;
+        try {
+          response = await fetch(API_URL + path, init);
+        } catch (err) {
+          // fetch only throws when the request never reached the server
+          throw new Error(
+            "Cannot reach the server. Is it running (python app.py)?"
+          );
+        }
+
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (err) {
+          /* response had no JSON body */
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            (data && data.error) ||
+              "Request failed (HTTP " + response.status + ")"
+          );
+        }
+        return data;
+      }
+
+      const api = {
+        list: () => request(""),
+        stats: () => request("/stats"),
+        create: (course) => request("", { method: "POST", body: course }),
+        update: (id, part) => request("/" + id, { method: "PUT", body: part }),
+        remove: (id) => request("/" + id, { method: "DELETE" }),
+      };
+
+      /* ==========================================================================
+   Small helpers
+   ========================================================================== */
+      const $ = (selector) => document.querySelector(selector);
+
+      let courses = []; // the latest list from the server
+
+      function el(tag, props = {}, ...children) {
+        const node = document.createElement(tag);
+        Object.assign(node, props);
+        node.append(...children);
+        return node;
+      }
+
+      // "2026-12-01" -> "Dec 1, 2026" (parsed by hand so time zones can't shift the day)
+      function formatTargetDate(value) {
+        const [y, m, d] = value.split("-").map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      // "2026-09-29T14:30:00" -> "Sep 29, 2026, 2:30 PM"
+      function formatCreated(value) {
+        const date = new Date(value);
+        return isNaN(date)
+          ? value
+          : date.toLocaleString(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            });
+      }
+
+      function badgeClass(status) {
+        return "badge " + status.toLowerCase().replace(/\s+/g, "-");
+      }
+
+      /* Messages: type is "success" or "error" */
+      function showMessage(type, text) {
+        const toast = el(
+          "div",
+          {
+            className: "toast " + type,
+            role: type === "error" ? "alert" : "status",
+          },
+          el("span", { textContent: text }),
+          el("button", {
+            type: "button",
+            textContent: "×",
+            ariaLabel: "Dismiss message",
+          })
+        );
+        toast
+          .querySelector("button")
+          .addEventListener("click", () => toast.remove());
+        $("#toasts").append(toast);
+        setTimeout(() => toast.remove(), type === "error" ? 8000 : 4500);
+      }
+
+      /* Show a spinner in a button and block double clicks while a request runs */
+      function setBusy(button, busy, busyText) {
+        const label = button.querySelector(".label");
+        if (busy) {
+          button.dataset.text = label.textContent;
+          label.textContent = busyText;
+        } else if (button.dataset.text) {
+          label.textContent = button.dataset.text;
+        }
+        button.classList.toggle("loading", busy);
+        button.disabled = busy;
+      }
+
+      /* ==========================================================================
+   Forms: shared by "Add a Course" and "Edit Course"
+   ========================================================================== */
+      function buildFields(form) {
+        const fragment = $("#fields-template").content.cloneNode(true);
+        const select = fragment.querySelector("select");
+        STATUSES.forEach((status) =>
+          select.append(el("option", { value: status, textContent: status }))
+        );
+        form.querySelector(".fields").append(fragment);
+      }
+
+      function readForm(form) {
+        const data = new FormData(form);
+        return {
+          name: String(data.get("name")).trim(),
+          description: String(data.get("description")).trim(),
+          target_date: String(data.get("target_date")),
+          status: String(data.get("status")),
+        };
+      }
+
+      function fillForm(form, course) {
+        for (const key of ["name", "description", "target_date", "status"]) {
+          form.elements[key].value = course[key];
+        }
+      }
+
+      // Returns an object like { name: "Name is required" }; empty object = all good
+      function validate(values) {
+        const errors = {};
+        if (!values.name) errors.name = "Name is required.";
+        if (!values.description)
+          errors.description = "Description is required.";
+        if (!values.target_date)
+          errors.target_date = "Pick a target completion date.";
+        else if (!/^\d{4}-\d{2}-\d{2}$/.test(values.target_date))
+          errors.target_date = "Use the format YYYY-MM-DD.";
+        if (!STATUSES.includes(values.status))
+          errors.status = "Choose a status.";
+        return errors;
+      }
+
+      function showFieldErrors(form, errors) {
+        for (const key of ["name", "description", "target_date", "status"]) {
+          const label = form.elements[key].closest("label");
+          label.classList.toggle("invalid", key in errors);
+          label.querySelector(".field-error").textContent = errors[key] || "";
+        }
+        const first = Object.keys(errors)[0];
+        if (first) form.elements[first].focus();
+      }
+
+      /* ==========================================================================
+   Loading and showing the course list
+   ========================================================================== */
+      function showListState(state) {
+        // "loading" | "error" | "empty" | "table"
+        $("#list-loading").hidden = state !== "loading";
+        $("#list-error").hidden = state !== "error";
+        $("#list-empty").hidden = state !== "empty";
+        $("#course-table").hidden = state !== "table";
+      }
+
+      function renderCourses() {
+        const body = $("#course-body");
+        body.replaceChildren();
+
+        for (const course of courses) {
+          const editBtn = el("button", {
+            type: "button",
+            className: "btn-edit",
+            textContent: "Edit",
+          });
+          editBtn.addEventListener("click", () => openEdit(course));
+          const removeBtn = el("button", {
+            type: "button",
+            className: "btn-remove",
+            textContent: "Remove",
+          });
+          removeBtn.addEventListener("click", () => openDelete(course));
+
+          const row = el(
+            "tr",
+            {},
+            cell(
+              "ID",
+              el("span", { className: "id", textContent: "#" + course.id })
+            ),
+            cell(
+              "Course",
+              el(
+                "div",
+                {},
+                el("div", { className: "c-name", textContent: course.name }),
+                el("div", {
+                  className: "c-desc",
+                  textContent: course.description,
+                })
+              ),
+              "course"
+            ),
+            cell(
+              "Target date",
+              document.createTextNode(formatTargetDate(course.target_date))
+            ),
+            cell(
+              "Status",
+              el("span", {
+                className: badgeClass(course.status),
+                textContent: course.status,
+              })
+            ),
+            cell(
+              "Created",
+              document.createTextNode(formatCreated(course.created_at))
+            ),
+            cell(
+              "Actions",
+              el("div", { className: "actions" }, editBtn, removeBtn)
+            )
+          );
+          body.append(row);
+        }
+        showListState(courses.length ? "table" : "empty");
+      }
+
+      // A table cell; data-label is shown on mobile, where rows become cards
+      function cell(label, content, className = "") {
+        const td = el("td", { className }, content);
+        td.dataset.label = label;
+        return td;
+      }
+
+      async function loadStats() {
+        try {
+          const stats = await api.stats();
+          $("#stat-total").textContent = stats.total;
+          $("#stat-not-started").textContent = stats.by_status["Not Started"];
+          $("#stat-in-progress").textContent = stats.by_status["In Progress"];
+          $("#stat-completed").textContent = stats.by_status["Completed"];
+        } catch (err) {
+          // The numbers are a bonus; a failure here shouldn't get in the way.
+          document
+            .querySelectorAll(".stat .num")
+            .forEach((n) => (n.textContent = "–"));
+        }
+      }
+
+      async function loadCourses() {
+        showListState("loading");
+        $("#refresh-btn").disabled = true;
+        try {
+          courses = await api.list();
+          renderCourses();
+          loadStats();
+        } catch (err) {
+          $("#list-error-text").textContent = err.message;
+          showListState("error");
+          showMessage("error", err.message);
+        } finally {
+          $("#refresh-btn").disabled = false;
+        }
+      }
+
+      /* ==========================================================================
+   Add a course  (POST /api/courses)
+   ========================================================================== */
+      const addForm = $("#add-form");
+
+      addForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const values = readForm(addForm);
+        const errors = validate(values);
+        showFieldErrors(addForm, errors);
+        if (Object.keys(errors).length) {
+          showMessage("error", "Please fix the highlighted fields.");
+          return;
+        }
+
+        const button = addForm.querySelector("[type=submit]");
+        setBusy(button, true, "Adding…");
+        try {
+          const created = await api.create(values);
+          addForm.reset();
+          showFieldErrors(addForm, {});
+          showMessage("success", "Added “" + created.name + "”.");
+          await loadCourses();
+        } catch (err) {
+          showMessage("error", err.message);
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      addForm.addEventListener("reset", () => showFieldErrors(addForm, {}));
+
+      /* ==========================================================================
+   Edit a course  (PUT /api/courses/{id})
+   ========================================================================== */
+      const editDialog = $("#edit-dialog");
+      const editForm = $("#edit-form");
+      let editing = null; // the course being edited
+
+      function openEdit(course) {
+        editing = course;
+        fillForm(editForm, course);
+        showFieldErrors(editForm, {});
+        editDialog.showModal();
+      }
+
+      editForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const values = readForm(editForm);
+        const errors = validate(values);
+        showFieldErrors(editForm, errors);
+        if (Object.keys(errors).length) return;
+
+        // Only send the fields that actually changed
+        const changes = {};
+        for (const key of Object.keys(values)) {
+          if (values[key] !== editing[key]) changes[key] = values[key];
+        }
+        if (!Object.keys(changes).length) {
+          editDialog.close();
+          showMessage("success", "Nothing to change.");
+          return;
+        }
+
+        const button = editForm.querySelector("[type=submit]");
+        setBusy(button, true, "Saving…");
+        try {
+          const updated = await api.update(editing.id, changes);
+          editDialog.close();
+          showMessage("success", "Saved “" + updated.name + "”.");
+          await loadCourses();
+        } catch (err) {
+          showMessage("error", err.message); // dialog stays open so nothing is lost
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      $("#edit-cancel").addEventListener("click", () => editDialog.close());
+
+      /* ==========================================================================
+   Remove a course  (DELETE /api/courses/{id})
+   ========================================================================== */
+      const deleteDialog = $("#delete-dialog");
+      let deleting = null;
+
+      function openDelete(course) {
+        deleting = course;
+        $("#delete-name").textContent = course.name;
+        deleteDialog.showModal();
+      }
+
+      $("#delete-confirm").addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        setBusy(button, true, "Removing…");
+        try {
+          await api.remove(deleting.id);
+          deleteDialog.close();
+          showMessage("success", "Removed “" + deleting.name + "”.");
+          await loadCourses();
+        } catch (err) {
+          deleteDialog.close();
+          showMessage("error", err.message);
+          // e.g. "Course not found" means it's already gone, so refresh the list
+          loadCourses();
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      $("#delete-cancel").addEventListener("click", () => deleteDialog.close());
+
+      /* Clicking the dark area outside a dialog closes it */
+      for (const dialog of [editDialog, deleteDialog]) {
+        dialog.addEventListener("click", (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+      }
+
+      /* ==========================================================================
+   Start
+   ========================================================================== */
+      buildFields(addForm);
+      buildFields(editForm);
+      $("#refresh-btn").addEventListener("click", loadCourses);
+      $("#retry-btn").addEventListener("click", loadCourses);
+      loadCourses();
+    </script>
+  </body>
+</html>

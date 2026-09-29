@@ -76,6 +76,7 @@ Every response also has a **status code**, a number that says how it went:
 - Full CRUD for courses: create, list, get one, update, delete
 - Filter the course list by status (`?status=In Progress`)
 - Statistics endpoint: total courses and how many are in each status
+- A web dashboard (`dashboard.html`) to add, edit and remove courses in the browser
 - CORS enabled, so web pages hosted elsewhere can call the API
 - Automatic `id` and `created_at` for every course
 - Input validation with clear error messages (missing fields, bad status, bad date)
@@ -158,7 +159,9 @@ The API is now running at **http://127.0.0.1:5000**. Leave this terminal open, s
 
 On first start, `courses.json` is created next to `app.py` containing an empty list (`[]`).
 
-**Check that it works.** Open a **second** terminal and run:
+**Open the dashboard.** Visit **http://127.0.0.1:5000/** in your browser. It's a single HTML page (plain HTML, CSS and JavaScript, no frameworks) that uses the API for everything: a form to add courses, a list with **Edit** and **Remove** buttons and summary numbers at the top. You can also open `dashboard.html` straight from disk or host it elsewhere: the API allows cross-origin requests (CORS) from any address, and `BACKEND_URL` at the top of the script's code says where the API lives.
+
+**Check that the API works.** Open a **second** terminal and run:
 
 ```bash
 curl http://127.0.0.1:5000/api/courses
@@ -383,6 +386,7 @@ IBM-GenAI-CodeCraftHub/
 ├── requirements.txt  # Python libraries to install (just Flask)
 ├── README.md         # This file
 ├── TESTING.md        # Copy-and-paste curl tests
+├── dashboard.html    # Web dashboard (HTML + CSS + JavaScript in one file)
 └── .venv/            # Your virtual environment (created in step 2, not part of the code)
 ```
 
@@ -395,7 +399,7 @@ The file is organized top to bottom in five sections:
 | **Setup** | Creates the Flask app, and defines where `courses.json` lives and which statuses are allowed. |
 | **Storage helpers** | `load_courses()` reads the file into a list. `save_courses()` writes the list back. `next_id()` picks the next id. `find_course()` looks one up. |
 | **Validation** | `validate_fields()` checks the data a client sends and returns a helpful message if something is wrong. |
-| **Endpoints** | One function per API action. `@app.route(...)` above each function connects it to a URL and a method. |
+| **Endpoints** | `/` serves the dashboard; every other function is one API action. `@app.route(...)` above each function connects it to a URL and a method. |
 | **Error handlers** | Turn every error (missing pages, wrong methods, file problems) into a JSON response. |
 
 ### How a request flows through the code

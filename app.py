@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
@@ -106,6 +106,12 @@ def validate_fields(data, partial=False):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+@app.route("/", methods=["GET"])
+def dashboard():
+    """Serve the web dashboard (dashboard.html) so it can call the API from the same address."""
+    return send_from_directory(os.path.dirname(DATA_FILE), "dashboard.html")
+
+
 @app.route("/api/courses", methods=["POST"])
 def create_course():
     """Add a new course."""
